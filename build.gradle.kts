@@ -2,10 +2,12 @@ plugins {
     kotlin("jvm") version "2.1.10"
     java
     antlr
+    application
 }
 
 group = "essa"
 version = "1.0-SNAPSHOT"
+
 
 repositories {
     mavenCentral()
@@ -32,4 +34,14 @@ sourceSets {
             srcDir(tasks.generateGrammarSource)
         }
     }
+}
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(21))
+    }
+}
+
+application {
+    mainClass.set("MainKt")
 }
