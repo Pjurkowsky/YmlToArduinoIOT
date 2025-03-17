@@ -1,3 +1,4 @@
-f(x,y) {
-    x and y;
-}
+board:
+    platform: arduino:avr
+    type: uno
+    port: /dev/ttyUSB0

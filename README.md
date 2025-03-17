@@ -2,6 +2,7 @@
 
 - Java 21 or later 
 - Gradle (if not using Gradle Wrapper)
+- [Arduino-cli](https://github.com/arduino/arduino-cli)
 
 ## Build and Run
 1. build  \

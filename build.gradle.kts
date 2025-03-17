@@ -25,7 +25,7 @@ tasks.test {
 
 tasks.generateGrammarSource {
     outputDirectory = file("./build/generated/sources/main/kotlin/antlr")
-    arguments = listOf("-package", "essa")
+    arguments = listOf("-package", "essa", "-visitor", "-no-listener")
 }
 
 sourceSets {
