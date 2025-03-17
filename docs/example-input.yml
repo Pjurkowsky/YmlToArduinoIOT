@@ -1,0 +1,75 @@
+board:
+    -platform: esp32:esp32
+    -type: esp32doit-devkit-v1
+    -port: COM7
+
+constants:
+
+- name: EPSILON
+  value: 0.5
+
+- name: PI
+  value: 3.14
+
+inputs:
+
+- name: touch_sensor1
+  mode: Analog
+  type: Sensor
+  source: GPIO2
+
+- name: touch_sensor2
+  mode: Analog
+  type: Sensor
+  source: GPIO3
+
+- name: button_1
+  mode: Digital
+  type: Button
+  source: GPIO5
+
+- name: light_sensor
+  mode: Analog
+  type: Sensor
+  source: GPIO8
+
+signals:
+
+- name: touch_1_pressed
+  expression: touch_sensor1 GREATER THAN 0.5
+
+- name: touch_2_pressed
+  expression: touch_sensor1 GREATER THAN EPSILON
+
+- name: touch_1_and_2_pressed
+  expression: touch_1_pressed AND touch_2_pressed
+
+outputs:
+
+- name: led_1
+  mode: Digital
+  pin: GPIO2
+
+- name: led_2
+  mode: Digital
+  pin: GPIO10
+
+- name: buzzer_1
+  mode: ANALOG
+  pin: GPIO11
+
+rules:
+
+- if: touch_1_pressed
+  then: SET led_1 ON
+
+- if: NOT touch_1_pressed
+  then: SET led_1 OFF
+
+events:
+
+- when: light_sensor REACHES 0.87
+  do: SET led_2 OFF
+
+- when: button_1 PRESSED
+  do:  PULSE buzzer_1 
