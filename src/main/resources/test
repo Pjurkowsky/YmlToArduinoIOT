@@ -2,3 +2,16 @@ board:
     platform: arduino:avr
     type: uno
     port: /dev/ttyUSB0
+inputs:
+    - name: essa
+      mode: ANALOG
+      type: SENSOR
+      source: 20
+    - name: asdsad
+      mode: ANALOG
+      type: SENSOR
+      source: 22
+outputs:
+    - name: buzzer_1
+      mode: ANALOG
+      pin: 11

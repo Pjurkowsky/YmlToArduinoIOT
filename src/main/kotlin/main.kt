@@ -1,8 +1,9 @@
+import entities.Arduino
+import essa.ExprLexer
+import essa.ExprParser
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
-import essa.ExprLexer
-import essa.ExprParser
 import java.io.BufferedReader
 import java.io.File
 
@@ -12,29 +13,19 @@ fun main() {
     val tokens = CommonTokenStream(lexer)
     val parser = ExprParser(tokens)
     val parseTree = parser.config()
-    val visitor = ArduinoVisitor()
+    val arduinoVisitor = ArduinoVisitor()
+    val arduinoConfig = arduinoVisitor.visit(parseTree)
 
-    val platform = visitor.visit(parseTree.boardDecl().boardPlatform())
-    val type = visitor.visit(parseTree.boardDecl().boardType())
-    val port = visitor.visit(parseTree.boardDecl().boardPort())
-    println(platform)
-    println(type)
-    println(port)
-
-    val basicCode = """
-        void setup() {}
-        void loop() {}
-    """.trimIndent()
+    println(arduinoConfig)
 
     val filename = "test"
-    createSketchFile(filename, basicCode)
-
+    createSketchFile(filename, generateCode(arduinoConfig))
     println("Installing platform...")
-    println(runCommand("arduino-cli core install $platform"))
+    println(runCommand("arduino-cli core install ${arduinoConfig.board?.platform}"))
     println("Compiling sketch...")
-    println(runCommand("arduino-cli compile --fqbn $platform:$type build/sketches/$filename"))
+    println(runCommand("arduino-cli compile --fqbn ${arduinoConfig.board?.platform}:${arduinoConfig.board?.type} build/sketches/$filename"))
     println("Uploading sketch...")
-    println(runCommand("arduino-cli upload -p $port --fqbn $platform:$type build/sketches/$filename"))
+    println(runCommand("arduino-cli upload -p ${arduinoConfig.board?.port} --fqbn ${arduinoConfig.board?.platform}:${arduinoConfig.board?.type} build/sketches/$filename"))
 }
 
 private fun readFile(filename: String): CharStream {
@@ -64,3 +55,29 @@ fun runCommand(command: String): String {
     return process.inputStream.bufferedReader().use(BufferedReader::readText)
 }
 
+fun generateCode(config: Arduino): String {
+    var inputSetup =
+        config.inputs.mapNotNull {
+            if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
+                "pinMode(${it.source}, INPUT);"
+            } else null
+        }.joinToString("\n")
+
+    var outputSetup =
+        config.outputs.mapNotNull {
+            if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
+                "pinMode(${it.pin}, OUTPUT);"
+            } else null
+        }.joinToString("\n")
+
+
+    return """
+        void setup() {
+        $inputSetup
+        $outputSetup
+        }
+
+        void loop() {
+        }
+    """.trimIndent()
+}
