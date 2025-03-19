@@ -9,6 +9,7 @@ TEXT            : [a-zA-Z_0-9]+ ;
 DEVICE_PATH     : ('/'? [a-zA-Z0-9/_]+) | ('COM' [0-9]+);
 INT             : [0-9]+ ;
 FLOAT           : [0-9]+ '.' [0-9]* ;
+BOOL            : ('TRUE'|'FALSE');
 // Parser rules
 config          : section+ EOF;
 
@@ -17,9 +18,8 @@ section         : boardDecl
                 | outputsDecl
                 | constantsDecl
                 | signalsDecl
-                | rulesOrEvents;
-
-rulesOrEvents   : (rulesDecl | eventsDecl | (rulesDecl eventsDecl));
+                | rulesDecl
+                | eventsDecl;
 
 // BOARD
 boardDecl       : 'board:' DEDENT boardSection+;
@@ -40,7 +40,7 @@ constantEntry   : constantName
                   constantValue;
 
 constantName    :  INDENT '- name:' TEXT DEDENT;
-constantValue   :  BIGINDENT 'value:' TEXT (INT | FLOAT);
+constantValue   :  BIGINDENT 'value:' (INT|FLOAT|TEXT) DEDENT;
 
 
 // INPUTS
@@ -76,7 +76,7 @@ signalEntry     : singalName
                   signalExpression;
 
 singalName      : INDENT '- name:' TEXT DEDENT;
-signalExpression: INDENT 'expression:' TEXT DEDENT;
+signalExpression: BIGINDENT 'expression:' varA=TEXT operand=('>'| '>=' | '<' | '<=' | '==' | '!=') varB=(INT | FLOAT | TEXT | BOOL)  DEDENT;
 
 // RULES
 
@@ -84,8 +84,8 @@ rulesDecl       : 'rules:' DEDENT ruleEntry+;
 ruleEntry       : ruleIf
                   ruleThen;
 
-ruleIf          : INDENT '- if:' TEXT DEDENT;
-ruleThen        : INDENT 'then:' TEXT DEDENT;
+ruleIf          : INDENT '- if:' donot='!'? variable=TEXT DEDENT;
+ruleThen        : BIGINDENT 'then:' do='SET' variable=TEXT state=('ON' | 'OFF') DEDENT;
 
 
 // EVENTS
@@ -93,5 +93,5 @@ eventsDecl      : 'events:' DEDENT eventEntry+;
 eventEntry      : eventWhen
                   eventDo;
 
-eventWhen: INDENT '- when:' TEXT DEDENT;
-eventDo: INDENT 'do:' TEXT DEDENT;
+eventWhen       : INDENT '- when:' TEXT DEDENT;
+eventDo         : BIGINDENT 'do:' TEXT DEDENT;

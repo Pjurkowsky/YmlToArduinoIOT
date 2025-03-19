@@ -1,12 +1,10 @@
-import entities.Arduino
-import entities.Board
-import entities.Inputs
-import entities.Outputs
+import entities.*
 import essa.ExprBaseVisitor
 import essa.ExprParser
 
 class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
     var arduino: Arduino = Arduino()
+
 
     override fun visitConfig(ctx: ExprParser.ConfigContext?): Arduino {
         if (ctx != null) {
@@ -31,7 +29,7 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                     section.boardPort() != null -> port = section.boardPort().DEVICE_PATH().text
                 }
             }
-        }
+        } else throw Error("Board section not found!")
         arduino.board = Board(
             platform ?: throw Error("Board platform is missing!"),
             type ?: throw Error("Board type is missing!"),
@@ -70,7 +68,7 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                     )
                 )
             }
-        }
+        } else throw Error("Input section is missing!")
         return arduino
     }
 
@@ -98,8 +96,123 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                     )
                 )
             }
-        }
+        } else throw Error("Output section is missing!")
 
         return arduino
     }
+
+    override fun visitConstantsDecl(ctx: ExprParser.ConstantsDeclContext?): Arduino {
+        if (ctx != null) {
+            for (constant in ctx.constantEntry()) {
+                var name: String? = null
+                var value: String? = null
+
+                if (constant.constantName() != null) {
+                    name = constant.constantName().TEXT().text
+                }
+                if (constant.constantValue() != null) {
+                    value =
+                        when {
+                            constant.constantValue().TEXT() != null -> constant.constantValue().TEXT().text
+                            constant.constantValue().INT() != null -> constant.constantValue().INT().text
+                            constant.constantValue().FLOAT() != null -> constant.constantValue().FLOAT().text
+                            else -> throw Error("Unexpected constant value!")
+                        }
+                }
+                arduino.constants.add(
+                    Constants(
+                        name ?: throw Error("Constant name is missing!"),
+                        value ?: throw Error("Constant value is missing!")
+                    )
+                )
+            }
+        }
+        return arduino
+    }
+
+    override fun visitSignalsDecl(ctx: ExprParser.SignalsDeclContext?): Arduino {
+        if (ctx != null) {
+            for (signal in ctx.signalEntry()) {
+                var name: String? = null
+                var varA: String? = null
+                var varB: String? = null
+                var operand: String? = null
+
+                if (signal.singalName() != null) {
+                    name = signal.singalName().TEXT().text
+                }
+                if (signal.signalExpression() != null) {
+                    varA = signal.signalExpression().varA.text
+                    varB = signal.signalExpression().varB.text
+                    operand = signal.signalExpression().operand.text
+                }
+                arduino.signals.add(
+                    Signals(
+                        name ?: throw Error("Signal name is missing!"),
+                        varA ?: throw Error("Signal varA is missing!"),
+                        varB ?: throw Error("Signal varB is missing!"),
+                        operand ?: throw Error("Signal operand is missing!")
+                    )
+                )
+            }
+        }
+        return arduino
+    }
+
+    override fun visitRulesDecl(ctx: ExprParser.RulesDeclContext?): Arduino {
+        if (ctx != null) {
+            var ruleVariable: String? = null
+            var ruleDo: String? = null
+            var ruleVar: String? = null
+            var ruleNot: String? = null
+            var ruleState: String? = null
+            for (rule in ctx.ruleEntry()) {
+                if (rule.ruleIf() != null) {
+                    ruleVariable = rule.ruleIf().variable.text
+                    if (rule.ruleIf().donot != null)
+                        ruleNot = rule.ruleIf().donot.text
+                }
+                if (rule.ruleThen() != null) {
+                    ruleDo = rule.ruleThen().do_.text
+                    ruleVar = rule.ruleThen().variable.text
+                    ruleState = rule.ruleThen().state.text
+                }
+                arduino.rules.add(
+                    Rules(
+                        ruleVariable ?: throw Error("Rule if is missing!"),
+                        ruleDo ?: throw Error("Rule do is missing!"),
+                        ruleNot,
+                        ruleVar ?: throw Error("Rule var is missing!"),
+                        ruleState ?: throw Error("Rule state is missing!")
+                    )
+                )
+            }
+        }
+        return arduino
+    }
+
+    override fun visitEventsDecl(ctx: ExprParser.EventsDeclContext?): Arduino {
+        if (ctx != null) {
+            var eventWhen: String? = null
+            var eventDo: String? = null
+            for (event in ctx.eventEntry()) {
+                if (event.eventWhen() != null) {
+                    eventWhen = event.eventWhen().TEXT().text
+                }
+                if (event.eventDo() != null) {
+                    eventDo = event.eventDo().TEXT().text
+                }
+                arduino.events.add(
+                    Events(
+                        eventWhen ?: throw Error("Event when is missing!"),
+                        eventDo ?: throw Error("Event do is missing!")
+                    )
+                )
+            }
+        }
+        return arduino
+    }
+
+
 }
+

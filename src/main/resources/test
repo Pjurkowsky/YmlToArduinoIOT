@@ -3,7 +3,7 @@ board:
     type: uno
     port: /dev/ttyUSB0
 inputs:
-    - name: essa
+    - name: led_1
       mode: ANALOG
       type: SENSOR
       source: 20
@@ -15,3 +15,14 @@ outputs:
     - name: buzzer_1
       mode: ANALOG
       pin: 11
+constants:
+    - name: pi
+      value: 3.14
+signals:
+    - name: touch_1_pressed
+      expression: 4 > 1
+rules:
+    - if: touch_1_pressed
+      then: SET led_1 ON
+    - if: !touch_1_pressed
+      then: SET led_1 OFF

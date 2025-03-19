@@ -56,10 +56,14 @@ fun runCommand(command: String): String {
 }
 
 fun generateCode(config: Arduino): String {
+
+    var inputDefine = config.inputs.map {
+        "#define ${it.name} ${it.source}"
+    }.joinToString("\n")
     var inputSetup =
         config.inputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "pinMode(${it.source}, INPUT);"
+                "pinMode(${it.name}, INPUT);"
             } else null
         }.joinToString("\n")
 
@@ -70,14 +74,37 @@ fun generateCode(config: Arduino): String {
             } else null
         }.joinToString("\n")
 
+    var constants = config.constants.map {
+        "#define ${it.name} ${it.value}"
+    }.joinToString("\n")
+
+    var singalDeclaration = config.signals.map {
+        "bool ${it.name} = false;"
+    }.joinToString("\n")
+
+    var signalProcess = config.signals.map {
+        "${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
+    }.joinToString("\n")
+
+    val rulesProcessing = config.rules.map {
+        println(it.ruleNot)
+        val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
+        val action = "digitalWrite(${it.thenVariable}, ${if (it.state == "ON") "HIGH" else "LOW"});"
+        "if($condition) {$action}"
+    }.joinToString("\n")
 
     return """
+        $inputDefine
+        $constants
+        $singalDeclaration
         void setup() {
         $inputSetup
         $outputSetup
         }
 
         void loop() {
+        $signalProcess
+        $rulesProcessing
         }
     """.trimIndent()
 }
