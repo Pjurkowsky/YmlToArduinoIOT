@@ -63,48 +63,49 @@ fun generateCode(config: Arduino): String {
     var inputSetup =
         config.inputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "pinMode(${it.name}, INPUT);"
+                "\tpinMode(${it.name}, INPUT);"
             } else null
         }.joinToString("\n")
 
     var outputSetup =
         config.outputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "pinMode(${it.pin}, OUTPUT);"
+                "\tpinMode(${it.pin}, OUTPUT);"
             } else null
         }.joinToString("\n")
 
     var constants = config.constants.map {
         "#define ${it.name} ${it.value}"
-    }.joinToString("\n")
+    }.joinToString("\n").trimIndent()
 
-    var singalDeclaration = config.signals.map {
+    var signalDeclaration = config.signals.map {
         "bool ${it.name} = false;"
-    }.joinToString("\n")
+    }.joinToString("\n").trimIndent()
 
     var signalProcess = config.signals.map {
-        "${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
+        "\t${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
     }.joinToString("\n")
 
     val rulesProcessing = config.rules.map {
         println(it.ruleNot)
         val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
         val action = "digitalWrite(${it.thenVariable}, ${if (it.state == "ON") "HIGH" else "LOW"});"
-        "if($condition) {$action}"
+        "\tif($condition) {\n" +
+            "\t\t$action\n" +
+        "\t}"
     }.joinToString("\n")
 
     return """
-        $inputDefine
-        $constants
-        $singalDeclaration
-        void setup() {
-        $inputSetup
-        $outputSetup
-        }
+$inputDefine
+$constants
+$signalDeclaration
+void setup() {
+$inputSetup
+$outputSetup
+}
 
-        void loop() {
-        $signalProcess
-        $rulesProcessing
-        }
-    """.trimIndent()
+void loop() {
+$signalProcess
+$rulesProcessing
+}""".trimIndent()
 }
