@@ -1,10 +1,11 @@
 import entities.*
 import essa.ExprBaseVisitor
 import essa.ExprParser
+import kotlin.math.sign
 
 class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
     var arduino: Arduino = Arduino()
-
+    var memory: HashMap<String, Any> = HashMap()
 
     override fun visitConfig(ctx: ExprParser.ConfigContext?): Arduino {
         if (ctx != null) {
@@ -59,14 +60,17 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                     source = input.inputSource().TEXT().text
                 }
 
-                arduino.inputs.add(
-                    Inputs(
-                        name ?: throw Error("Input name is missing!"),
-                        mode ?: throw Error("Input mode is missing!"),
-                        type,
-                        source ?: throw Error("Input source is missing!")
+                if (name != null && memory[name] == null) {
+                    arduino.inputs.add(
+                        Inputs(
+                            name ?: throw Error("Input name is missing!"),
+                            mode ?: throw Error("Input mode is missing!"),
+                            type,
+                            source ?: throw Error("Input source is missing!")
+                        )
                     )
-                )
+                    memory[name] = source
+                }
             }
         } else throw Error("Input section is missing!")
         return arduino
@@ -119,12 +123,15 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                             else -> throw Error("Unexpected constant value!")
                         }
                 }
-                arduino.constants.add(
-                    Constants(
-                        name ?: throw Error("Constant name is missing!"),
-                        value ?: throw Error("Constant value is missing!")
+                if (name != null && memory[name] == null) {
+                    arduino.constants.add(
+                        Constants(
+                            name ?: throw Error("Constant name is missing!"),
+                            value ?: throw Error("Constant value is missing!")
+                        )
                     )
-                )
+                    memory[name] = value
+                }
             }
         }
         return arduino
@@ -146,14 +153,17 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                     varB = signal.signalExpression().varB.text
                     operand = signal.signalExpression().operand.text
                 }
-                arduino.signals.add(
-                    Signals(
-                        name ?: throw Error("Signal name is missing!"),
-                        varA ?: throw Error("Signal varA is missing!"),
-                        varB ?: throw Error("Signal varB is missing!"),
-                        operand ?: throw Error("Signal operand is missing!")
+                if (name != null && memory[name] == null) {
+                    arduino.signals.add(
+                        Signals(
+                            name ?: throw Error("Signal name is missing!"),
+                            varA ?: throw Error("Signal varA is missing!"),
+                            varB ?: throw Error("Signal varB is missing!"),
+                            operand ?: throw Error("Signal operand is missing!")
+                        )
                     )
-                )
+                    memory[name] = false;
+                }
             }
         }
         return arduino
