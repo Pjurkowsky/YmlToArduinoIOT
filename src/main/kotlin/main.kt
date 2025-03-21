@@ -56,7 +56,6 @@ fun runCommand(command: String): String {
 }
 
 fun generateCode(config: Arduino): String {
-
     var inputDefine = config.inputs.map {
         "#define ${it.name} ${it.source}"
     }.joinToString("\n")
@@ -71,11 +70,11 @@ fun generateCode(config: Arduino): String {
         }.joinToString("\n")
 
     var inputVariable = config.inputs.mapNotNull {
-        "\tuint8_t ${it.name}_var = 0;"
+        "uint8_t ${it.name}_var = 0;"
     }.joinToString("\n")
 
     var inputRead = config.inputs.mapNotNull {
-        "${it.name}_var = digitalRead(${it.source});"
+        "\t${it.name}_var = digitalRead(${it.source});"
     }.joinToString("\n")
     var outputDefine = config.outputs.map {
         "#define ${it.name} ${it.pin}"
@@ -83,7 +82,7 @@ fun generateCode(config: Arduino): String {
     var outputSetup =
         config.outputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "\tpinMode(${it.pin}, OUTPUT);"
+                "\tpinMode(${it.name}, OUTPUT);"
             } else null
         }.joinToString("\n")
 
@@ -101,8 +100,8 @@ fun generateCode(config: Arduino): String {
 
     val rulesProcessing = config.rules.map {
         println(it.ruleNot)
-        val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
-        val action = "digitalWrite(${it.thenVariable}_var, ${if (it.state == "ON") "HIGH" else "LOW"});"
+        val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}_var"
+        val action = "digitalWrite(${it.thenVariable}, ${if (it.state == "ON") "HIGH" else "LOW"});"
         "\tif($condition) {\n" +
             "\t\t$action\n" +
         "\t}"

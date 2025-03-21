@@ -6,7 +6,7 @@ inputs:
     - name: button_1
       mode: ANALOG
       type: BUTTON
-      source: 4
+      pin: 4
 outputs:
     - name: led_1
       mode: ANALOG
