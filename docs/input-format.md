@@ -46,6 +46,7 @@ users microcontroller of choice. Supported fields are listed below, all of which
   together form the device `FQBN`
 - `port` - the name of the port a board is connected to. On UNIX-based system this will most likely be
   `/dev/ttyUSB[0-9]`, while on Windows it would be `COM[0-9]`
+  - `polling_delay`
 
 So, for the Arduino UNO microcontroller connected to `/dev/ttyUSB0` this section would read
 

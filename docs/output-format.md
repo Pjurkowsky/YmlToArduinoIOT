@@ -6,7 +6,7 @@ flashed onto the target board. This document describes how the resulting `.ino` 
 should be structured and the patterns for converting the `.yml` input into `C++` snippets used in Arduino sketches
 
 After reading this document, please take a look at the example [input](./sample/input.yml) and [output](./sample/output.ino) files. The output file has comments labeling each block, but 
-they are not required to be there when generating the sketch with this tool.
+they are not required to be there when 
 
 ## Outline 
 A typical arduino sketch has 3 sections:
@@ -67,14 +67,25 @@ Each section in the input format can map to code snippets in  any of the output 
 \* For `globals` and `init` the order is irrelevant as far as behaviour is concerned, but lets 
 keep it strict 
 
-```
 
 ## Mapping of input sections to sketch sections
 
 ### `board`
 
-This section contains metadata required to build and flash the project onto the board, are do not 
-produce any output in the intermediate `.ino` sketch
+Only one field from the `board` section maps to a code snippet in the output sketch. At the 
+end of the `loop` section, there shall be a `delat(x)` instruction, the value of `x` should be the 
+same as the `pooling_delay` field in the `board` section
+
+```yml
+board:
+  - pooling_delay: 10
+```
+```cpp
+void loop(){
+  // ***
+  delay(10);
+}
+```
 
 ### `inputs`
 
