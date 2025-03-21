@@ -1,0 +1,90 @@
+
+
+group ArduinoCpp;
+
+arduino(arduinoConfig, analogInputs, analogOutputs, digitalInputs, digitalOutputs) ::= <<
+#define HIGH 1
+#define LOW 0
+
+<declareConstants(arduinoConfig.constants)>
+<declareVariables(arduinoConfig.inputs)>
+<declareVariables(arduinoConfig.outputs)>
+<declareVariables(arduinoConfig.signals)>
+<declareEventVariable(arduinoConfig.events)>
+void setup() {
+<declareInputPins(arduinoConfig.inputs)>
+<declareOutputPins(arduinoConfig.outputs)>
+}
+
+void loop() {
+
+<declareDigitalRead(digitalInputs)>
+<declareAnalogRead(digitalOutputs)>
+
+<declareSignals(arduinoConfig.signals)>
+<declareRules(arduinoConfig.rules)>
+
+<declareEvents(arduinoConfig.events)>
+
+<declareDigitalWrite(digitalOutputs)>
+<declareAnalogWrite(analogOutputs)>
+}
+>>
+
+declareConstants(constants) ::= <<
+<constants:{it | #define <it.name> <it.value>}; separator="\n">
+>>
+
+declareVariables(variables) ::= <<
+<variables:{it | uint16_t <it.name>;}; separator="\n">
+>>
+
+declareEventVariable(events) ::= <<
+<events:{it | uint16_t event<it.id>_fired = 0;}; separator="\n">
+>>
+
+declareInputPins(pins) ::= <<
+<pins:{it | pinMode(<it.pin>, INPUT);}; separator="\n">
+>>
+
+declareOutputPins(pins) ::= <<
+<pins:{it | pinMode(<it.pin>, OUTPUT);}; separator="\n">
+>>
+
+declareAnalogRead(inputs) ::= <<
+<inputs:{it | <it.name> = analogRead(<it.pin>);}; separator="\n">
+>>
+
+declareDigitalRead(inputs) ::= <<
+<inputs:{it | <it.name> = digitalRead(<it.pin>);}; separator="\n">
+>>
+
+declareAnalogWrite(outputs) ::= <<
+<outputs:{it | analogWrite(<it.pin>, <it.name>);}; separator="\n">
+>>
+
+declareDigitalWrite(outputs) ::= <<
+<outputs:{it | digitalWrite(<it.pin>, <it.name>);}; separator="\n">
+>>
+
+declareSignals(signals) ::= <<
+<signals:{it | <it.name> = <it.variableA> <it.operand> <it.variableB>;}; separator="\n">
+>>
+
+declareRules(rules) ::= <<
+<rules: {it | if(<if(it.ruleNot)>!<endif><it.variable>){
+<it.variable> = <it.state>;
+\} }; separator="\n">
+>>
+
+declareEvents(events) ::= <<
+<events: {it | if(<it.variableA><if(it.operand)> <it.operand> <it.variableB><endif>) {
+    if(!event<it.id>_fired){
+        <it.variableC> = <it.state>;
+        event<it.id>_fired = true;
+    \}
+\} else {
+   event<it.id>_fired = false;
+\}
+}; separator="\n">
+>>
