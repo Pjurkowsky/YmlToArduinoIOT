@@ -47,32 +47,34 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                 var type: String? = null
                 var source: String? = null
 
-                if (input.inputName() != null) {
-                    name = input.inputName().TEXT().text
-                }
-                if (input.inputMode() != null) {
-                    mode = input.inputMode().TEXT().text
-                }
-                if (input.inputType() != null) {
-                    type = input.inputType().TEXT().text
-                }
-                if (input.inputSource() != null) {
-                    source = input.inputSource().TEXT().text
-                }
-
-                if (name != null && memory[name] == null) {
-                    arduino.inputs.add(
-                        Inputs(
-                            name ?: throw Error("Input name is missing!"),
-                            mode ?: throw Error("Input mode is missing!"),
-                            type,
-                            source ?: throw Error("Input source is missing!")
-                        )
-                    )
-                    memory[name] = source
+            if (input.inputName() != null) {
+                name = when {
+                    memory[input.inputName().TEXT().text] != null ->
+                        throw Error("Input ${input.inputName().TEXT().text} is redeclared!")
+                    else -> input.inputName().TEXT().text
                 }
             }
-        } else throw Error("Input section is missing!")
+            if (input.inputMode() != null) {
+                mode = input.inputMode().TEXT().text
+            }
+            if (input.inputType() != null) {
+                type = input.inputType().TEXT().text
+            }
+            if (input.inputSource() != null) {
+                source = input.inputSource().TEXT().text
+            }
+
+            arduino.inputs.add(
+                Inputs(
+                    name ?: throw Error("Input name is missing!"),
+                    mode ?: throw Error("Input mode is missing!"),
+                    type,
+                    source ?: throw Error("Input source is missing!")
+                )
+            )
+            memory[name] = source
+        }
+
         return arduino
     }
 
@@ -111,29 +113,32 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                 var name: String? = null
                 var value: String? = null
 
-                if (constant.constantName() != null) {
-                    name = constant.constantName().TEXT().text
-                }
-                if (constant.constantValue() != null) {
-                    value =
-                        when {
-                            constant.constantValue().TEXT() != null -> constant.constantValue().TEXT().text
-                            constant.constantValue().INT() != null -> constant.constantValue().INT().text
-                            constant.constantValue().FLOAT() != null -> constant.constantValue().FLOAT().text
-                            else -> throw Error("Unexpected constant value!")
-                        }
-                }
-                if (name != null && memory[name] == null) {
-                    arduino.constants.add(
-                        Constants(
-                            name ?: throw Error("Constant name is missing!"),
-                            value ?: throw Error("Constant value is missing!")
-                        )
-                    )
-                    memory[name] = value
+            if (constant.constantName() != null) {
+                name = when {
+                    memory[constant.constantName().TEXT().text] != null ->
+                        throw Error("Constant ${constant.constantName().TEXT().text} is redeclared!")
+                    else -> constant.constantName().TEXT().text
                 }
             }
+            if (constant.constantValue() != null) {
+                value =
+                    when {
+                        constant.constantValue().TEXT() != null -> constant.constantValue().TEXT().text
+                        constant.constantValue().INT() != null -> constant.constantValue().INT().text
+                        constant.constantValue().FLOAT() != null -> constant.constantValue().FLOAT().text
+                        else -> throw Error("Unexpected constant value!")
+                    }
+            }
+
+            arduino.constants.add(
+                Constants(
+                    name ?: throw Error("Constant name is missing!"),
+                    value ?: throw Error("Constant value is missing!")
+                )
+            )
+            memory[name] = value
         }
+
         return arduino
     }
 
@@ -145,26 +150,28 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                 var varB: String? = null
                 var operand: String? = null
 
-                if (signal.singalName() != null) {
-                    name = signal.singalName().TEXT().text
-                }
-                if (signal.signalExpression() != null) {
-                    varA = signal.signalExpression().varA.text
-                    varB = signal.signalExpression().varB.text
-                    operand = signal.signalExpression().operand.text
-                }
-                if (name != null && memory[name] == null) {
-                    arduino.signals.add(
-                        Signals(
-                            name ?: throw Error("Signal name is missing!"),
-                            varA ?: throw Error("Signal varA is missing!"),
-                            varB ?: throw Error("Signal varB is missing!"),
-                            operand ?: throw Error("Signal operand is missing!")
-                        )
-                    )
-                    memory[name] = false;
+            if (signal.singalName() != null) {
+                name = when {
+                    memory[signal.singalName().TEXT().text] != null ->
+                        throw Error("Signal ${signal.singalName().TEXT().text} is redeclared!")
+                    else -> signal.singalName().TEXT().text
                 }
             }
+            if (signal.signalExpression() != null) {
+                varA = signal.signalExpression().varA.text
+                varB = signal.signalExpression().varB.text
+                operand = signal.signalExpression().operand.text
+            }
+
+            arduino.signals.add(
+                Signals(
+                    name ?: throw Error("Signal name is missing!"),
+                    varA ?: throw Error("Signal varA is missing!"),
+                    varB ?: throw Error("Signal varB is missing!"),
+                    operand ?: throw Error("Signal operand is missing!")
+                )
+            )
+            memory[name] = false;
         }
         return arduino
     }
