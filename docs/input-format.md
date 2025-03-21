@@ -82,7 +82,6 @@ should have the following fields:
 
 - `name` - human-readable, meaningful name of the input source, to be used in other sections of the file
 - `mode` - operating mode of the input source. Either `ANALOG` or `DIGITAL`
-- `type` - either `SENSOR` or `BUTTON` ***/* TBD czy to w ogóle potrzebne */***
 - `source` - pin to which the input is connected
 
 An example input definition would look like so:
@@ -91,9 +90,8 @@ An example input definition would look like so:
 inputs:
 
   - name: button_1
-    mode: Digital
-    type: Button
-    source: GPIO5
+    mode: DIGITAL
+    source: 5
 ```
 
 ### `outputs`

@@ -1,0 +1,67 @@
+
+board:
+    -platform: esp32:esp32
+    -type: esp32doit-devkit-v1
+    -port: COM7
+
+constants:
+- name: EPSILON
+  value: 5
+
+- name: PI
+  value: 3
+
+inputs:
+
+- name: btn1
+  mode: DIGITAL
+  source: 2
+
+- name: btn2
+  mode: DIGITAL
+  source: 3
+
+- name: photo1
+  mode: Analog
+  source: 4
+
+outputs:
+
+- name: led1
+  mode: DIGITAL
+  pin: 20
+
+- name: led2
+  mode: DIGITAL
+  pin: 30
+
+- name: buzzer1
+  mode: DIGITAL
+  pin: 40
+
+signals:
+
+- name: both_buttons_pressed
+  expression: btn1 AND btn2
+
+rules:
+
+- if: btn1
+  then: SET led1 ON
+
+- if: !btn1
+  then: SET led1 OFF
+
+- if: both_buttons_pressed
+  then: SET led2 ON
+
+- if: !both_buttons_pressed
+  then: SET led2 OFF
+
+events:
+
+- when: photo1 REACHES 87
+  do: SET led2 OFF
+
+- when: btn1 PRESSED
+  do:  SET buzzer_1 HIGH

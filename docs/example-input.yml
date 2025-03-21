@@ -15,22 +15,18 @@ inputs:
 
 - name: touch_sensor1
   mode: Analog
-  type: Sensor
   source: GPIO2
 
 - name: touch_sensor2
   mode: Analog
-  type: Sensor
   source: GPIO3
 
 - name: button_1
   mode: Digital
-  type: Button
   source: GPIO5
 
 - name: light_sensor
   mode: Analog
-  type: Sensor
   source: GPIO8
 
 signals:
