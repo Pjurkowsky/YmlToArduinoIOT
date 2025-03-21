@@ -63,48 +63,65 @@ fun generateCode(config: Arduino): String {
     var inputSetup =
         config.inputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "pinMode(${it.name}, INPUT);"
-            } else null
+                "\tpinMode(${it.name}, INPUT);"
+            } else if(it.type == "BUTTON"){
+                "\tpinMode(${it.name}, INPUT_PULLUP);"
+            }
+            else null
         }.joinToString("\n")
 
+    var inputVariable = config.inputs.mapNotNull {
+        "\tuint8_t ${it.name}_var = 0;"
+    }.joinToString("\n")
+
+    var inputRead = config.inputs.mapNotNull {
+        "${it.name}_var = digitalRead(${it.source});"
+    }.joinToString("\n")
+    var outputDefine = config.outputs.map {
+        "#define ${it.name} ${it.pin}"
+    }.joinToString("\n")
     var outputSetup =
         config.outputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "pinMode(${it.pin}, OUTPUT);"
+                "\tpinMode(${it.pin}, OUTPUT);"
             } else null
         }.joinToString("\n")
 
     var constants = config.constants.map {
         "#define ${it.name} ${it.value}"
-    }.joinToString("\n")
+    }.joinToString("\n").trimIndent()
 
-    var singalDeclaration = config.signals.map {
+    var signalDeclaration = config.signals.map {
         "bool ${it.name} = false;"
-    }.joinToString("\n")
+    }.joinToString("\n").trimIndent()
 
     var signalProcess = config.signals.map {
-        "${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
+        "\t${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
     }.joinToString("\n")
 
     val rulesProcessing = config.rules.map {
         println(it.ruleNot)
         val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
-        val action = "digitalWrite(${it.thenVariable}, ${if (it.state == "ON") "HIGH" else "LOW"});"
-        "if($condition) {$action}"
+        val action = "digitalWrite(${it.thenVariable}_var, ${if (it.state == "ON") "HIGH" else "LOW"});"
+        "\tif($condition) {\n" +
+            "\t\t$action\n" +
+        "\t}"
     }.joinToString("\n")
 
     return """
-        $inputDefine
-        $constants
-        $singalDeclaration
-        void setup() {
-        $inputSetup
-        $outputSetup
-        }
+$inputDefine
+$outputDefine
+$constants
+$signalDeclaration
+$inputVariable
+void setup() {
+$inputSetup
+$outputSetup
+}
 
-        void loop() {
-        $signalProcess
-        $rulesProcessing
-        }
-    """.trimIndent()
+void loop() {
+$inputRead
+$signalProcess
+$rulesProcessing
+}""".trimIndent()
 }

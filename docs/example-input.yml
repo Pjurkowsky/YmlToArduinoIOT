@@ -68,4 +68,4 @@ events:
   do: SET led_2 OFF
 
 - when: button_1 PRESSED
-  do:  PULSE buzzer_1 
+  do:  BLINK buzzer_1
