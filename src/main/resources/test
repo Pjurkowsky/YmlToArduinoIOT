@@ -1,28 +1,20 @@
 board:
-    platform: arduino:avr
-    type: uno
+    platform: esp32:esp32
+    type: esp32doit-devkit-v1
     port: /dev/ttyUSB0
 inputs:
+    - name: button_1
+      mode: ANALOG
+      type: BUTTON
+      source: 4
+outputs:
     - name: led_1
       mode: ANALOG
-      type: SENSOR
-      source: 20
-    - name: asdsad
-      mode: ANALOG
-      type: SENSOR
-      source: 22
-outputs:
-    - name: buzzer_1
-      mode: ANALOG
-      pin: 11
+      pin: 2
 constants:
     - name: pi
       value: 3.14
-signals:
-    - name: touch_1_pressed
-      expression: 4 > 1
 rules:
-    - if: touch_1_pressed
+    - if: button_1
       then: SET led_1 ON
-    - if: !touch_1_pressed
-      then: SET led_1 OFF
+

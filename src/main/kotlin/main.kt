@@ -64,9 +64,22 @@ fun generateCode(config: Arduino): String {
         config.inputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
                 "\tpinMode(${it.name}, INPUT);"
-            } else null
+            } else if(it.type == "BUTTON"){
+                "\tpinMode(${it.name}, INPUT_PULLUP);"
+            }
+            else null
         }.joinToString("\n")
 
+    var inputVariable = config.inputs.mapNotNull {
+        "\tuint8_t ${it.name}_var = 0;"
+    }.joinToString("\n")
+
+    var inputRead = config.inputs.mapNotNull {
+        "${it.name}_var = digitalRead(${it.source});"
+    }.joinToString("\n")
+    var outputDefine = config.outputs.map {
+        "#define ${it.name} ${it.pin}"
+    }.joinToString("\n")
     var outputSetup =
         config.outputs.mapNotNull {
             if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
@@ -89,7 +102,7 @@ fun generateCode(config: Arduino): String {
     val rulesProcessing = config.rules.map {
         println(it.ruleNot)
         val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
-        val action = "digitalWrite(${it.thenVariable}, ${if (it.state == "ON") "HIGH" else "LOW"});"
+        val action = "digitalWrite(${it.thenVariable}_var, ${if (it.state == "ON") "HIGH" else "LOW"});"
         "\tif($condition) {\n" +
             "\t\t$action\n" +
         "\t}"
@@ -97,14 +110,17 @@ fun generateCode(config: Arduino): String {
 
     return """
 $inputDefine
+$outputDefine
 $constants
 $signalDeclaration
+$inputVariable
 void setup() {
 $inputSetup
 $outputSetup
 }
 
 void loop() {
+$inputRead
 $signalProcess
 $rulesProcessing
 }""".trimIndent()

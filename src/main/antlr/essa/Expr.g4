@@ -5,7 +5,7 @@ INDENT          : '    ' ;
 BIGINDENT       : '      ';
 DEDENT          : ('\n'|'\r\n') ;
 WS              : [ \t]+ -> skip ;
-TEXT            : [a-zA-Z_0-9]+ ;
+TEXT            : [a-zA-Z_0-9-]+ ;
 DEVICE_PATH     : ('/'? [a-zA-Z0-9/_]+) | ('COM' [0-9]+);
 INT             : [0-9]+ ;
 FLOAT           : [0-9]+ '.' [0-9]* ;
