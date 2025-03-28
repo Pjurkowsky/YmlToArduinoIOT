@@ -53,35 +53,32 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
         for (input in ctx.inputEntry()) {
             var name: String? = null
             var mode: String? = null
-            var type: String? = null
-            var source: String? = null
+            var pin: String? = null
 
             if (input.inputName() != null) {
                 name = when {
                     memory[input.inputName().TEXT().text] != null ->
                         throw Error("Input ${input.inputName().TEXT().text} is redeclared!")
+
                     else -> input.inputName().TEXT().text
                 }
             }
             if (input.inputMode() != null) {
                 mode = input.inputMode().TEXT().text
             }
-            if (input.inputType() != null) {
-                type = input.inputType().TEXT().text
-            }
-            if (input.inputSource() != null) {
-                source = input.inputSource().TEXT().text
+
+            if (input.inputPin() != null) {
+                pin = input.inputPin().TEXT().text
             }
 
             arduino.inputs.add(
                 Inputs(
                     name ?: throw Error("Input name is missing!"),
                     mode ?: throw Error("Input mode is missing!"),
-                    type,
-                    source ?: throw Error("Input source is missing!")
+                    pin ?: throw Error("Input source is missing!")
                 )
             )
-            memory[name] = source
+            memory[name] = pin
         }
 
         return arduino
@@ -131,6 +128,7 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                 name = when {
                     memory[constant.constantName().TEXT().text] != null ->
                         throw Error("Constant ${constant.constantName().TEXT().text} is redeclared!")
+
                     else -> constant.constantName().TEXT().text
                 }
             }
@@ -171,6 +169,7 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
                 name = when {
                     memory[signal.singalName().TEXT().text] != null ->
                         throw Error("Signal ${signal.singalName().TEXT().text} is redeclared!")
+
                     else -> signal.singalName().TEXT().text
                 }
             }
@@ -199,12 +198,12 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
             return arduino
         }
 
-        var ruleVariable: String? = null
-        var ruleDo: String? = null
-        var ruleVar: String? = null
-        var ruleNot: String? = null
-        var ruleState: String? = null
         for (rule in ctx.ruleEntry()) {
+            var ruleVariable: String? = null
+            var ruleDo: String? = null
+            var ruleVar: String? = null
+            var ruleNot: String? = null
+            var ruleState: String? = null
             if (rule.ruleIf() != null) {
                 ruleVariable = rule.ruleIf().variable.text
                 if (rule.ruleIf().donot != null)
@@ -234,20 +233,40 @@ class ArduinoVisitor : ExprBaseVisitor<Arduino>() {
         if (ctx == null) {
             return arduino
         }
+        var eventId: Int = 0;
 
-        var eventWhen: String? = null
-        var eventDo: String? = null
         for (event in ctx.eventEntry()) {
-            if (event.eventWhen() != null) {
-                eventWhen = event.eventWhen().TEXT().text
+            var variableA: String? = null
+            var operand: String? = null
+            var variableB: String? = null
+            var variableC: String? = null
+            var state: String? = null
+
+            eventId++;
+            if (event.eventWhen().variableA != null) {
+                variableA = event.eventWhen().variableA.text
             }
-            if (event.eventDo() != null) {
-                eventDo = event.eventDo().TEXT().text
+            if (event.eventWhen().operand != null) {
+                operand = if (event.eventWhen().operand.text != "PRESSED") event.eventWhen().operand.text else null
+            }
+            if (event.eventWhen().variableB != null) {
+                variableB = event.eventWhen().variableB.text
+            }
+
+            if (event.eventDo().variableC != null) {
+                variableC = event.eventDo().variableC.text
+            }
+            if (event.eventDo().state != null) {
+                state = event.eventDo().state.text
             }
             arduino.events.add(
                 Events(
-                    eventWhen ?: throw Error("Event when is missing!"),
-                    eventDo ?: throw Error("Event do is missing!")
+                    id = eventId,
+                    variableA ?: throw Error("Event VariableA is missing!"),
+                    operand,
+                    variableB,
+                    variableC ?: throw Error("Event variableC is missing!"),
+                    state ?: throw Error("Event state is missing!")
                 )
             )
         }

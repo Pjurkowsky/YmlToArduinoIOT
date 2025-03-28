@@ -1,8 +1,8 @@
 grammar Expr;
 
 // Lexer rules
-INDENT          : '    ' ;
-BIGINDENT       : '      ';
+INDENT          : '  ' ;
+BIGINDENT       : '    ';
 DEDENT          : ('\n'|'\r\n') ;
 WS              : [ \t]+ -> skip ;
 TEXT            : [a-zA-Z_0-9-]+ ;
@@ -14,9 +14,9 @@ BOOL            : ('TRUE'|'FALSE');
 config          : section+ EOF;
 
 section         : boardDecl
+                | constantsDecl
                 | inputsDecl
                 | outputsDecl
-                | constantsDecl
                 | signalsDecl
                 | rulesDecl
                 | eventsDecl;
@@ -48,13 +48,11 @@ inputsDecl      : 'inputs:' DEDENT inputEntry+;
 
 inputEntry      : inputName
                   inputMode
-                  inputType
-                  inputSource;
+                  inputPin;
 
 inputName       :  INDENT '- name:' TEXT DEDENT;
 inputMode       :  BIGINDENT  'mode:' TEXT DEDENT;
-inputType       :  BIGINDENT  'type:' TEXT DEDENT;
-inputSource     :  BIGINDENT 'source:' TEXT DEDENT;
+inputPin     :  BIGINDENT 'pin:' TEXT DEDENT;
 
 
 // OUTPUTS
@@ -76,7 +74,7 @@ signalEntry     : singalName
                   signalExpression;
 
 singalName      : INDENT '- name:' TEXT DEDENT;
-signalExpression: BIGINDENT 'expression:' varA=TEXT operand=('>'| '>=' | '<' | '<=' | '==' | '!=') varB=(INT | FLOAT | TEXT | BOOL)  DEDENT;
+signalExpression: BIGINDENT 'expression:' varA=TEXT operand=('>'| '>=' | '<' | '<=' | '==' | '!=' | '&&' | '||') varB=(INT | FLOAT | TEXT | BOOL)  DEDENT;
 
 // RULES
 
@@ -85,7 +83,7 @@ ruleEntry       : ruleIf
                   ruleThen;
 
 ruleIf          : INDENT '- if:' donot='!'? variable=TEXT DEDENT;
-ruleThen        : BIGINDENT 'then:' do='SET' variable=TEXT state=('ON' | 'OFF') DEDENT;
+ruleThen        : BIGINDENT 'then:' do='SET' variable=TEXT state=('HIGH' | 'LOW') DEDENT;
 
 
 // EVENTS
@@ -93,5 +91,5 @@ eventsDecl      : 'events:' DEDENT eventEntry+;
 eventEntry      : eventWhen
                   eventDo;
 
-eventWhen       : INDENT '- when:' TEXT DEDENT;
-eventDo         : BIGINDENT 'do:' TEXT DEDENT;
+eventWhen       : INDENT '- when:' variableA=TEXT operand=('>'| '>=' | '<' | '<=' | '==' | '!=' | '&&' | '||' | 'PRESSED')? variableB=TEXT? DEDENT;
+eventDo         : BIGINDENT 'do:' do='SET' variableC=TEXT state=('HIGH' | 'LOW') DEDENT;

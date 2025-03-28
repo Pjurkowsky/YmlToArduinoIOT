@@ -4,11 +4,13 @@ import essa.ExprParser
 import org.antlr.v4.runtime.CharStream
 import org.antlr.v4.runtime.CharStreams
 import org.antlr.v4.runtime.CommonTokenStream
+import org.stringtemplate.v4.STGroupFile
 import java.io.BufferedReader
 import java.io.File
 
+
 fun main() {
-    val charStream = readFile("test")
+    val charStream = readFile("test.yml")
     val lexer = ExprLexer(charStream)
     val tokens = CommonTokenStream(lexer)
     val parser = ExprParser(tokens)
@@ -18,7 +20,7 @@ fun main() {
 
     println(arduinoConfig)
 
-    val filename = "test"
+    val filename = "test.yml"
     createSketchFile(filename, generateCode(arduinoConfig))
     println("Installing platform...")
     println(runCommand("arduino-cli core install ${arduinoConfig.board?.platform}"))
@@ -55,73 +57,14 @@ fun runCommand(command: String): String {
     return process.inputStream.bufferedReader().use(BufferedReader::readText)
 }
 
-fun generateCode(config: Arduino): String {
+fun generateCode(arduinoConfig: Arduino): String {
+    val group = STGroupFile("templates/cpp.stg")
+    val template = group.getInstanceOf("arduino")
+    template.add("arduinoConfig", arduinoConfig)
+    template.add("analogOutputs", arduinoConfig.outputs.filter { it.mode == "ANALOG" })
+    template.add("analogInputs", arduinoConfig.inputs.filter { it.mode == "ANALOG" })
+    template.add("digitalInputs", arduinoConfig.inputs.filter { it.mode == "DIGITAL" })
+    template.add("digitalOutputs", arduinoConfig.outputs.filter { it.mode == "DIGITAL" })
 
-    var inputDefine = config.inputs.map {
-        "#define ${it.name} ${it.source}"
-    }.joinToString("\n")
-    var inputSetup =
-        config.inputs.mapNotNull {
-            if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "\tpinMode(${it.name}, INPUT);"
-            } else if(it.type == "BUTTON"){
-                "\tpinMode(${it.name}, INPUT_PULLUP);"
-            }
-            else null
-        }.joinToString("\n")
-
-    var inputVariable = config.inputs.mapNotNull {
-        "\tuint8_t ${it.name}_var = 0;"
-    }.joinToString("\n")
-
-    var inputRead = config.inputs.mapNotNull {
-        "${it.name}_var = digitalRead(${it.source});"
-    }.joinToString("\n")
-    var outputDefine = config.outputs.map {
-        "#define ${it.name} ${it.pin}"
-    }.joinToString("\n")
-    var outputSetup =
-        config.outputs.mapNotNull {
-            if (it.mode == "DIGITAL" || it.mode == "ANALOG") {
-                "\tpinMode(${it.pin}, OUTPUT);"
-            } else null
-        }.joinToString("\n")
-
-    var constants = config.constants.map {
-        "#define ${it.name} ${it.value}"
-    }.joinToString("\n").trimIndent()
-
-    var signalDeclaration = config.signals.map {
-        "bool ${it.name} = false;"
-    }.joinToString("\n").trimIndent()
-
-    var signalProcess = config.signals.map {
-        "\t${it.name} = (${it.variableA} ${it.operand} ${it.variableB});"
-    }.joinToString("\n")
-
-    val rulesProcessing = config.rules.map {
-        println(it.ruleNot)
-        val condition = "${if (it.ruleNot != null) "!" else ""}${it.variable}"
-        val action = "digitalWrite(${it.thenVariable}_var, ${if (it.state == "ON") "HIGH" else "LOW"});"
-        "\tif($condition) {\n" +
-            "\t\t$action\n" +
-        "\t}"
-    }.joinToString("\n")
-
-    return """
-$inputDefine
-$outputDefine
-$constants
-$signalDeclaration
-$inputVariable
-void setup() {
-$inputSetup
-$outputSetup
-}
-
-void loop() {
-$inputRead
-$signalProcess
-$rulesProcessing
-}""".trimIndent()
+    return template.render()
 }
