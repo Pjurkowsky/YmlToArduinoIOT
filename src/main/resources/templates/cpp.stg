@@ -73,7 +73,7 @@ declareSignals(signals) ::= <<
 
 declareRules(rules) ::= <<
 <rules: {it | if(<if(it.ruleNot)>!<endif><it.variable>){
-<it.variable> = <it.state>;
+<it.thenVariable> = <it.state>;
 \} }; separator="\n">
 >>
 
